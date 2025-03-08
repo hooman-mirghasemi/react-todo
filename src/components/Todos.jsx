@@ -1,21 +1,20 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import TodoList from "./TodoList";
 import { v4 as uuidv4 } from 'uuid';
 import NewTodoInput from "./NewTodoInput";
 
 export default function Todos() {
-    const [todos, setTodos] = useState([
-        {
-          id: uuidv4(),
-          title: "my first work",
-          status: true,
-        },
-        {
-          id: uuidv4(),
-          title: "my secound work",
-          status: false,
-        }
-      ]);
+    const [todos, setTodos] = useState([]);
+
+    useEffect(() => {
+      setTodos(JSON.parse(localStorage.getItem('todos_list')) ?? [])
+    }, []);
+    
+    useEffect(function() {
+      localStorage.setItem('todos_list', JSON.stringify(todos));
+    }, [todos]);
+
+ 
 
     const addNewTodo = (newTodoTitle) => {
       if (event.key === 'Enter' && newTodoTitle !== "") {
