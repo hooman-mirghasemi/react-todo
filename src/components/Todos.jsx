@@ -2,12 +2,28 @@ import { useEffect, useState } from "react"
 import TodoList from "./TodoList";
 import { v4 as uuidv4 } from 'uuid';
 import NewTodoInput from "./NewTodoInput";
+import { toast } from "react-toastify";
 
 export default function Todos() {
     const [todos, setTodos] = useState([]);
 
+    const getTodosFromApi = async() => {
+      try {
+        let res = await fetch('https://67d066e7825945773eb0c652.mockapi.io/api/v1/todos', {
+          method: 'get',
+          headers: {'content-type':'application/json'},
+        });
+        let todos = await res.json();
+        if (res.ok) {
+          setTodos(todos);
+        }
+      } catch(error) {
+        console.log(error);
+      }
+      
+    }
     useEffect(() => {
-      setTodos(JSON.parse(localStorage.getItem('todos_list')) ?? [])
+      getTodosFromApi();
     }, []);
     
     useEffect(function() {
@@ -16,41 +32,105 @@ export default function Todos() {
 
  
 
-    const addNewTodo = (newTodoTitle) => {
-      if (event.key === 'Enter' && newTodoTitle !== "") {
-        setTodos([...todos, {
-            id: uuidv4(),
-            title: newTodoTitle,
-            status: false
-          }]);
+    const addNewTodo = async (newTodoTitle) => {
+      let data = {
+        title: newTodoTitle,
+        status: false
       }
+      try{
+        let res = await fetch('https://67d066e7825945773eb0c652.mockapi.io/api/v1/todos', {
+          method: 'post',
+          headers: {'content-type':'application/json'},
+          body: JSON.stringify(data)
+        });
+
+        let todoData = await res.json();
+
+        setTodos([...todos, todoData]);
+        toast.success('New todo created successfully', {
+          position: "top-center",
+        });
+      } catch(error) {
+        toast.error(error, {
+          position: "top-center",
+        });
+      }
+      
     };
 
-    const handelDelete = (todo) => {
-      let newTodos = todos.filter((todoItem) => {
-          return todoItem.id != todo.id;
-      });
-      setTodos(newTodos);
+    const handelDelete = async (todo) => {
+      try {
+        let res = await fetch(`https://67d066e7825945773eb0c652.mockapi.io/api/v1/todos/${todo.id}`, {
+          method: 'delete',
+          headers: {'content-type':'application/json'}
+        });
+  
+        let newTodos = todos.filter((todoItem) => {
+            return todoItem.id != todo.id;
+        });
+        setTodos(newTodos);
+        toast.success('Todo deleted!', {
+          position: "top-center",
+        });
+      } catch (error) {
+        toast.error(error, {
+          position: "top-center",
+        });
+      }      
     };
 
-    const toggleStatus = (todo) => {
-      let newTodos = todos.map((todoItem) => {
-        if (todoItem.id == todo.id) {
-          todoItem.status = !todoItem.status;
-        }
-        return todoItem;
-      });
-      setTodos(newTodos);
+    const toggleStatus = async (todo) => {
+      try {
+        let res = await fetch(`https://67d066e7825945773eb0c652.mockapi.io/api/v1/todos/${todo.id}`, {
+          method: 'put',
+          headers: {'content-type':'application/json'},
+          body: JSON.stringify({
+            status: !todo.status
+          })
+        });
+
+        let newTodos = todos.map((todoItem) => {
+          if (todoItem.id == todo.id) {
+            todoItem.status = !todoItem.status;
+          }
+          return todoItem;
+        });
+        setTodos(newTodos);
+        toast.success('Todo status updated!', {
+          position: "top-center",
+        });
+      } catch (error) {
+        toast.error(error, {
+          position: "top-center",
+        });
+      }
     }
 
-    const editTodoTitle = (todo, newTodoTitleValue) => {
-      let newTodos = todos.map((todoItem) => {
-        if (todoItem.id == todo.id) {
-          todoItem.title = newTodoTitleValue;
-        }
-        return todoItem;
-      });
-      setTodos(newTodos);
+    const editTodoTitle = async (todo, newTodoTitleValue) => {
+      try {
+        let res = await fetch(`https://67d066e7825945773eb0c652.mockapi.io/api/v1/todos/${todo.id}`, {
+          method: 'put',
+          headers: {'content-type':'application/json'},
+          body: JSON.stringify({
+            title: newTodoTitleValue
+          })
+        });
+
+        let newTodos = todos.map((todoItem) => {
+          if (todoItem.id == todo.id) {
+            todoItem.title = newTodoTitleValue;
+          }
+          return todoItem;
+        });
+        setTodos(newTodos);
+        toast.success('Todo updated!', {
+          position: "top-center",
+        });
+      } catch (error) {
+        toast.error(error, {
+          position: "top-center",
+        });
+      }
     }
 
     return (
