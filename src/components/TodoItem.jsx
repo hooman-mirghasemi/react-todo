@@ -1,10 +1,19 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import Delete from "./icons/Delete";
 import Edit from "./icons/Edit";
+import { UserContext } from "../contexts/UserContext";
+import { toast } from "react-toastify";
+import { TodoContext } from "../contexts/TodoContext";
 
-export default function TodoItem({todo, handelDelete, toggleStatus, editTodoTitle}) {
+export default function TodoItem({todo}) {
+
+    const {todoDispatcher} = useContext(TodoContext);
 
     const [editMode, setEditMode] = useState(false);
+
+    let user = useContext(UserContext);
+
+    console.log(user);
 
     const editTodoHandler = (event) => {
       if (event.key === 'Enter') {
@@ -12,6 +21,78 @@ export default function TodoItem({todo, handelDelete, toggleStatus, editTodoTitl
         setEditMode(false)
       }
     };
+
+    const handelDelete = async (todo) => {
+        try {
+            let res = await fetch(`https://67d066e7825945773eb0c652.mockapi.io/api/v1/todos/${todo.id}`, {
+            method: 'delete',
+            headers: {'content-type':'application/json'}
+            });
+
+            todoDispatcher({
+                type: 'delete',
+                id: todo.id,
+            });
+            
+            toast.success('Todo deleted!', {
+                position: "top-center",
+            });
+        } catch (error) {
+            toast.error(error, {
+                position: "top-center",
+            });
+        }      
+    };
+      
+    const toggleStatus = async (todo) => {
+        try {
+          let res = await fetch(`https://67d066e7825945773eb0c652.mockapi.io/api/v1/todos/${todo.id}`, {
+            method: 'put',
+            headers: {'content-type':'application/json'},
+            body: JSON.stringify({
+              status: !todo.status
+            })
+          });
+  
+          todoDispatcher({
+            type: 'toggle-status',
+            id: todo.id
+          })
+          toast.success('Todo status updated!', {
+            position: "top-center",
+          });
+        } catch (error) {
+          toast.error(error, {
+            position: "top-center",
+          });
+        }
+    }
+    
+    const editTodoTitle = async (todo, newTodoTitleValue) => {
+      try {
+          let res = await fetch(`https://67d066e7825945773eb0c652.mockapi.io/api/v1/todos/${todo.id}`, {
+              method: 'put',
+              headers: {'content-type':'application/json'},
+              body: JSON.stringify({
+                  title: newTodoTitleValue
+              })
+          });
+
+          todoDispatcher({
+              type: 'edit-title',
+              id: todo.id,
+              newTodoTitle: newTodoTitleValue
+          });
+
+          toast.success('Todo updated!', {
+              position: "top-center",
+          });
+      } catch (error) {
+          toast.error(error, {
+              position: "top-center",
+          });
+      }
+    }
 
     return (
       <li className="relative flex items-center justify-between px-2 py-6 border-b">
