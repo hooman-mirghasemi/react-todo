@@ -4,6 +4,7 @@ import Edit from "./icons/Edit";
 import { UserContext } from "../contexts/UserContext";
 import { toast } from "react-toastify";
 import { TodoContext } from "../contexts/TodoContext";
+import { Link } from "react-router";
 
 export default function TodoItem({todo}) {
 
@@ -110,7 +111,9 @@ export default function TodoItem({todo}) {
           <div className="flex items-center">
             <div>
               <input type="checkbox" className="" onChange={() => toggleStatus(todo)}  checked={todo?.status} />
-              <p className={`inline-block mt-1 ml-2 text-gray-600 ${todo?.status ? 'line-through' : ''}`}>{todo?.title}</p>
+              <Link to={`/todos/${todo.id}`}>
+                <p className={`inline-block mt-1 ml-2 text-gray-600 ${todo?.status ? 'line-through' : ''}`}>{todo?.title}</p>
+              </Link>
             </div>
             <button type="button" className="absolute right-0 flex items-center space-x-1">
               <Edit onClick={() => setEditMode(true)} />
